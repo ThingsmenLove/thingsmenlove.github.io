@@ -97,6 +97,16 @@
   .chip:hover{color:#fff}
   .chip.active{background:linear-gradient(180deg,var(--blue-br),var(--blue));color:#fff;border-color:transparent}
 
+  /* ---------- Search ---------- */
+  .search{position:relative;margin-top:18px}
+  .search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--muted);pointer-events:none}
+  .search input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);
+    font-family:'Inter',sans-serif;font-size:15.5px;padding:14px 16px 14px 46px;outline:none;transition:.16s}
+  .search input::placeholder{color:var(--muted)}
+  .search input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+  .nores{display:none;color:var(--muted);font-size:15px;padding:6px 2px 64px}
+  .nores.show{display:block}
+
   /* ---------- Grid ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:22px;padding-bottom:64px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
@@ -193,6 +203,11 @@
       <p>Tap a category to filter.</p>
     </div>
 
+    <div class="search">
+      <svg viewBox="0 0 24 24"><path d="M21.7 20.3l-3.7-3.7a8 8 0 1 0-1.4 1.4l3.7 3.7a1 1 0 0 0 1.4-1.4ZM4 10a6 6 0 1 1 12 0 6 6 0 0 1-12 0Z"/></svg>
+      <input id="search" type="text" placeholder="Search gear — e.g. RC car, watch, headphones…" autocomplete="off">
+    </div>
+
     <div class="filters" id="filters">
       <button class="chip active" data-f="all">All</button>
       <button class="chip" data-f="rc">RC &amp; Toys</button>
@@ -252,6 +267,7 @@
       </article>
 
     </section>
+    <p class="nores" id="nores">No gear matches that search — try a different word, or tap “All”.</p>
   </main>
 
   <!-- ===== FOOTER ===== -->
@@ -273,12 +289,30 @@
 
 <script>
   document.getElementById('yr').textContent = new Date().getFullYear();
-  const chips=document.querySelectorAll('.chip'), cards=document.querySelectorAll('.card');
+  const chips=document.querySelectorAll('.chip'),
+        cards=document.querySelectorAll('.card'),
+        search=document.getElementById('search'),
+        nores=document.getElementById('nores');
+  let activeCat='all';
+  function apply(){
+    const q=search.value.trim().toLowerCase();
+    let shown=0;
+    cards.forEach(card=>{
+      const inCat = activeCat==='all' || card.dataset.cat===activeCat;
+      const inText = !q || card.textContent.toLowerCase().includes(q);
+      const show = inCat && inText;
+      card.classList.toggle('hidden', !show);
+      if(show) shown++;
+    });
+    nores.classList.toggle('show', shown===0);
+  }
   chips.forEach(c=>c.addEventListener('click',()=>{
-    chips.forEach(x=>x.classList.remove('active'));c.classList.add('active');
-    const f=c.dataset.f;
-    cards.forEach(card=>card.classList.toggle('hidden', !(f==='all'||card.dataset.cat===f)));
+    chips.forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    activeCat=c.dataset.f;
+    apply();
   }));
+  search.addEventListener('input', apply);
 </script>
 </body>
 </html>
